@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Seat Booking - Silver Oak University</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body onload="loadBookingPage()">
+    <header>
+        <img src="logo.png" alt="Silver Oak Logo">
+        <h1>Seat Booking</h1>
+    </header>
+
+    <div class="info-box">
+        <label for="transportSelect">Select Transport:</label>
+        <select id="transportSelect" onchange="updateSeatsAndFare()">
+            <option value="car">Car (4 seats)</option>
+            <option value="bike">Bike (1 seat)</option>
+            <option value="rickshaw">Rickshaw (3 seats)</option>
+            <option value="carpool">Carpool (4 seats)</option>
+        </select>
+
+        <div id="carpoolOptions" style="display:none;">
+            <label>Carpool Type:</label>
+            <select id="carpoolType">
+                <option value="ss">Student + Student</option>
+                <option value="tt">Teacher + Teacher</option>
+                <option value="st">Student + Teacher</option>
+            </select>
+        </div>
+
+        <label for="bookingDate">Select Date:</label>
+        <input type="date" id="bookingDate" required>
+
+        <label for="slotSelect">Select Slot:</label>
+        <select id="slotSelect">
+            <option value="Morning">Morning (8:00 AM - 10:00 AM)</option>
+            <option value="Afternoon">Afternoon (12:00 PM - 2:00 PM)</option>
+            <option value="Evening">Evening (4:00 PM - 6:00 PM)</option>
+        </select>
+
+        <p><strong>Route:</strong> Naroda → Gota → Maninagar → Gandhinagar</p>
+        <p>Total Fare: ₹<span id="fareInfo"></span></p>
+    </div>
+
+    <h2>Select Your Seats:</h2>
+    <div id="seats"></div>
+
+    <div class="buttons">
+        <button onclick="payNow()">Pay Now</button>
+        <button onclick="confirmBooking()">Confirm Booking</button>
+        <button onclick="openMap()">Map</button>
+        <button onclick="sos()">SOS</button>
+        <button onclick="logout()">Logout</button>
+        <button onclick="viewHistory()">History</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Silver Oak Transport</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <img src="logo.png" alt="Silver Oak Logo">
+        <h1>Login</h1>
+    </header>
+
+    <div class="form-box">
+        <h2>Login with Email</h2>
+        <input type="email" id="email" placeholder="Enter your Email" required>
+        <input type="password" id="password" placeholder="Enter your Password" required>
+        <select id="userType">
+            <option value="student">Student</option>
+            <option value="teacher">Teacher</option>
+        </select>
+         <h2>verification</h2>
+        <input type="file" id="idUpload" accept="image/*">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

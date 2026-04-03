@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Dashboard</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+<h1>Dashboard</h1>
+</header>
+
+<div class="container">
+<h2>Book Transport / Carpool</h2>
+
+<label>Select Date:</label>
+<input type="date" id="bookingDate" min="2026-04-04">
+
+<select id="transport">
+<option value="">Select Vehicle</option>
+<option value="car">Car (4 seats)</option>
+<option value="rickshaw">Rickshaw (3 seats)</option>
+<option value="bike">Bike (1 seat)</option>
+<option value="carpool">Carpool</option>
+</select>
+
+<select id="carpoolType" style="display:none;">
+<option value="">Select Carpool Type</option>
+<option value="student-student">Student ↔ Student</option>
+<option value="student-teacher">Student ↔ Teacher</option>
+<option value="teacher-teacher">Teacher ↔ Teacher</option>
+</select>
+
+<select id="route">
+<option value="">Select Route</option>
+<option value="Gota">Gota</option>
+<option value="Naroda">Naroda</option>
+<option value="Maninagar">Maninagar</option>
+<option value="Gandhinagar">Gandhinagar</option>
+</select>
+
+<select id="slot">
+<option value="">Select Slot</option>
+<option value="morning">Morning (7:30 AM)</option>
+<option value="afternoon">Afternoon (12:30 PM)</option>
+<option value="evening">Evening (5:00 PM)</option>
+</select>
+
+<p>Fare: ₹<span id="fareAmount">0</span></p>
+
+<button onclick="proceedBooking()">Proceed</button>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
