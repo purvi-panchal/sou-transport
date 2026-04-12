@@ -1,93 +1,144 @@
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f7f3ef;
+* {
+    box-sizing: border-box;
     margin: 0;
-    padding: 0 20px;
-    color: #5C4033;
-    text-align: center;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+    background-color: #fff8f0;
+    color: #333;
 }
 
 header {
     background-color: #A0522D;
     color: white;
-    padding: 15px;
+    padding: 16px 24px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 15px;
+    gap: 16px;
+}
+
+header img {
+    height: 50px;
+    border-radius: 50%;
+}
+
+header h1 {
+    font-size: 22px;
+    font-weight: 500;
+}
+
+.form-box, .info-box, .container {
+    background: white;
+    border: 2px solid #A0522D;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 480px;
+    margin: 30px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+h2 {
+    font-size: 18px;
+    font-weight: 500;
+    color: #A0522D;
+    margin-bottom: 4px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+input[type="file"],
+select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid #A0522D;
     border-radius: 8px;
-    margin-bottom: 20px;
+    font-size: 14px;
+    background: #fff;
+    color: #333;
+    outline: none;
 }
 
-header img { width: 60px; height: 60px; object-fit: contain; }
-
-.form-box, .info-box {
-    background-color: #fff5e6;
-    border: 2px solid #A0522D;
-    border-radius: 15px;
-    padding: 20px;
-    margin: 20px auto;
-    max-width: 600px;
-    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+input:focus, select:focus {
+    border-color: #8B4513;
+    box-shadow: 0 0 0 2px rgba(160,82,45,0.15);
 }
 
-.form-box input, .form-box select, .form-box button {
-    width: 90%;
-    margin: 10px auto;
-    padding: 12px;
-    border: 2px solid #A0522D;
-    border-radius: 10px;
-    font-size: 16px;
+label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #5a3a1a;
 }
 
-.form-box button {
+button {
+    padding: 10px 18px;
     background-color: #A0522D;
-    color: white;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
     font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: background 0.2s, transform 0.1s;
 }
 
-.form-box button:hover {
+button:hover {
     background-color: #8B4513;
+    transform: translateY(-2px);
+}
+
+button:active {
+    transform: scale(0.98);
 }
 
 #seats {
     display: flex;
     flex-wrap: wrap;
-    gap: 15px;
+    gap: 12px;
     justify-content: center;
-    margin: 25px 0;
+    padding: 20px;
 }
 
 .seat {
     width: 60px;
     height: 60px;
+    border-radius: 8px;
+    background: #fff5e6;
     border: 2px solid #A0522D;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
+    color: #A0522D;
     font-weight: bold;
-    background-color: #fff;
-    transition: 0.3s;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
 }
 
-.seat:hover { background-color: #ffe6cc; transform: translateY(-3px); }
-.seat.selected { background-color: #A0522D; color: #fff; }
-.booked { background-color: #8B0000; color: #fff; cursor: not-allowed; }
-.pending { background-color: #FFD700; color: #000; }
+.seat.selected {
+    background: #A0522D;
+    color: white;
+}
+
+.seat.booked {
+    background: #ccc;
+    color: #888;
+    border-color: #bbb;
+    cursor: not-allowed;
+}
 
 .buttons {
     display: flex;
     flex-wrap: wrap;
-    gap: 15px;
     justify-content: center;
-    margin-top: 20px;
+    gap: 12px;
+    padding: 20px;
 }
 
 .buttons button {
-    padding: 12px 25px;
-    border: none;
     border-radius: 10px;
     background-color: #A0522D;
     color: #fff;
@@ -95,7 +146,10 @@ header img { width: 60px; height: 60px; object-fit: contain; }
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
-.buttons button:hover { background-color: #8B4513; transform: translateY(-2px); }
+.buttons button:hover {
+    background-color: #8B4513;
+    transform: translateY(-2px);
+}
 
 table {
     border-collapse: collapse;
