@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Login - Silver Oak Transport</title>
     <link rel="stylesheet" href="style.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 </head>
 <body>
     <header>
@@ -19,11 +20,127 @@
             <option value="student">Student</option>
             <option value="teacher">Teacher</option>
         </select>
-         <h2>verification</h2>
+
+        <h2>ID Verification</h2>
+        <p style="font-size:13px;color:#666;">Upload your university ID card, then take a live photo. Your face on the ID must match your live face.</p>
+
+        <label>Step 1: Upload University ID Card</label>
         <input type="file" id="idUpload" accept="image/*">
-        <button onclick="login()">Login</button>
+        <canvas id="idCanvas" style="display:none;max-width:100%;border-radius:8px;margin-top:8px;"></canvas>
+
+        <label style="margin-top:14px;">Step 2: Live Camera Verification</label>
+        <div style="position:relative;display:inline-block;">
+            <video id="video" width="320" height="240" autoplay muted style="border-radius:8px;border:2px solid #A0522D;display:block;"></video>
+            <canvas id="overlay" width="320" height="240" style="position:absolute;top:0;left:0;pointer-events:none;"></canvas>
+        </div>
+        <br>
+        <button onclick="captureAndVerify()" id="verifyBtn" style="margin-top:10px;" disabled>Verify Face & Login</button>
+
+        <div id="verifyStatus" style="margin-top:10px;font-weight:500;"></div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+    let modelsLoaded = false;
+    let idDescriptor = null;
+    const MODEL_URL = 'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights';
+
+    async function loadModels() {
+        document.getElementById('verifyStatus').innerText = 'Loading face recognition models...';
+        await Promise.all([
+            faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+            faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+            faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+        ]);
+        modelsLoaded = true;
+        document.getElementById('verifyStatus').innerText = 'Models loaded. Please upload your ID card.';
+        startCamera();
+    }
+
+    async function startCamera() {
+        const video = document.getElementById('video');
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+        } catch (e) {
+            document.getElementById('verifyStatus').innerText = 'Camera access denied. Please allow camera.';
+        }
+    }
+
+    document.getElementById('idUpload').addEventListener('change', async function(e) {
+        if (!modelsLoaded) {
+            document.getElementById('verifyStatus').innerText = 'Still loading models, please wait...';
+            return;
+        }
+        const file = e.target.files[0];
+        if (!file) return;
+        const img = await faceapi.bufferToImage(file);
+        const canvas = document.getElementById('idCanvas');
+        canvas.style.display = 'block';
+        const ctx = canvas.getContext('2d');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+
+        document.getElementById('verifyStatus').innerText = 'Detecting face in ID card...';
+        const detection = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
+            .withFaceLandmarks()
+            .withFaceDescriptor();
+
+        if (!detection) {
+            document.getElementById('verifyStatus').innerText = 'No face found in ID card. Please upload a clear ID photo.';
+            return;
+        }
+        idDescriptor = detection.descriptor;
+        document.getElementById('verifyStatus').innerText = 'ID face detected! Now click "Verify Face & Login".';
+        document.getElementById('verifyBtn').disabled = false;
+    });
+
+    async function captureAndVerify() {
+        if (!modelsLoaded || !idDescriptor) {
+            alert('Please upload ID card first and wait for models to load.');
+            return;
+        }
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value.trim();
+        if (!email || !password) {
+            alert('Enter both email and password');
+            return;
+        }
+
+        document.getElementById('verifyStatus').innerText = 'Detecting your live face...';
+        const video = document.getElementById('video');
+        const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+            .withFaceLandmarks()
+            .withFaceDescriptor();
+
+        if (!detection) {
+            document.getElementById('verifyStatus').innerText = 'No face detected in camera. Please look at camera clearly.';
+            return;
+        }
+
+        const distance = faceapi.euclideanDistance(idDescriptor, detection.descriptor);
+        const THRESHOLD = 0.55;
+
+        if (distance < THRESHOLD) {
+            document.getElementById('verifyStatus').style.color = 'green';
+            document.getElementById('verifyStatus').innerText = 'Face verified! Logging in...';
+            const userType = document.getElementById('userType').value;
+            const user = { email, password, userType };
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            setTimeout(() => { window.location.href = 'booking.html'; }, 1000);
+        } else {
+            document.getElementById('verifyStatus').style.color = 'red';
+            document.getElementById('verifyStatus').innerText = 'Face does not match ID card. Please try again or use correct ID.';
+        }
+    }
+
+    window.addEventListener('load', () => {
+        if (typeof faceapi !== 'undefined') {
+            loadModels();
+        } else {
+            setTimeout(loadModels, 1500);
+        }
+    });
+    </script>
 </body>
 </html>
