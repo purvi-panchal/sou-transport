@@ -1,26 +1,127 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Silver Oak Transport App</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Silver Oak Transport App</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  body { background: linear-gradient(160deg, #fff5f5 0%, #f4f6fb 100%); }
+
+  .hero {
+    text-align: center;
+    padding: 50px 20px 10px;
+  }
+  .hero-logo {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 4px solid #8B1A1A;
+    box-shadow: 0 8px 28px rgba(139,26,26,0.25);
+    object-fit: cover;
+  }
+  .hero h1 {
+    font-size: 1.7rem;
+    color: #8B1A1A;
+    margin-top: 18px;
+    font-weight: 800;
+  }
+  .hero p {
+    color: #666;
+    margin-top: 10px;
+    font-size: 0.95rem;
+    max-width: 340px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+  }
+  .hero-btn {
+    display: inline-block;
+    margin-top: 28px;
+    padding: 15px 48px;
+    background: linear-gradient(135deg, #8B1A1A, #c0392b);
+    color: white;
+    border-radius: 50px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 8px 24px rgba(139,26,26,0.38);
+    transition: transform 0.15s, box-shadow 0.15s;
+    border: none;
+    cursor: pointer;
+    width: auto;
+  }
+  .hero-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(139,26,26,0.45);
+  }
+
+  .features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    max-width: 460px;
+    width: 92%;
+    margin: 30px auto 10px;
+  }
+  .feature-card {
+    background: white;
+    border-radius: 14px;
+    padding: 18px 14px;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    border-top: 3px solid #8B1A1A;
+  }
+  .feature-card .icon { font-size: 2rem; }
+  .feature-card h3 { font-size: 0.88rem; color: #2d2d2d; margin-top: 8px; font-weight: 700; }
+  .feature-card p { font-size: 0.78rem; color: #888; margin-top: 4px; line-height: 1.4; }
+
+  footer {
+    text-align: center;
+    padding: 24px 20px;
+    color: #aaa;
+    font-size: 0.78rem;
+  }
+
+  @media (max-width: 400px) {
+    .hero h1 { font-size: 1.35rem; }
+    .features { grid-template-columns: 1fr 1fr; gap: 10px; }
+  }
+</style>
 </head>
 <body>
-    <header>
-        <img src="logo.png" alt="Silver Oak Logo">
-        <h1>Silver Oak University Transport App</h1>
-    </header>
 
-    <div class="form-box">
-        <h2>Welcome!</h2>
-        <p>Manage your daily commute easily. Book your seat in cars, bikes, rickshaws, or carpools with fellow students and teachers.</p>
-        <button onclick="startApp()">Get Started</button>
-    </div>
+<div class="hero">
+  <img src="logo.png" alt="Silver Oak Logo" class="hero-logo">
+  <h1>Silver Oak Transport</h1>
+  <p>Manage your daily university commute easily. Book seats, verify identity, and travel safe! 🚌</p>
+  <button class="hero-btn" onclick="window.location.href='login.html'">🚀 Get Started</button>
+</div>
 
-    <script>
-        function startApp() {
-            window.location.href = "login.html";
-        }
-    </script>
+<div class="features">
+  <div class="feature-card">
+    <div class="icon">🔒</div>
+    <h3>Face Verification</h3>
+    <p>Secure login with ID card face match</p>
+  </div>
+  <div class="feature-card">
+    <div class="icon">🪑</div>
+    <h3>Seat Booking</h3>
+    <p>Pick your preferred seat easily</p>
+  </div>
+  <div class="feature-card">
+    <div class="icon">💳</div>
+    <h3>Easy Payment</h3>
+    <p>Pay online quickly & securely</p>
+  </div>
+  <div class="feature-card">
+    <div class="icon">🆘</div>
+    <h3>SOS Safety</h3>
+    <p>Emergency alert at one tap</p>
+  </div>
+</div>
+
+<footer>© 2025 Silver Oak University Transport · All rights reserved</footer>
+
 </body>
 </html>
