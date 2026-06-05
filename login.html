@@ -2,111 +2,193 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Login - Silver Oak Transport</title>
 <link rel="stylesheet" href="style.css">
 <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 <style>
-  .bypass-btn {
-    background: #6c757d;
+  .step-badge {
+    display: inline-block;
+    background: var(--primary);
     color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-top: 8px;
-    width: 100%;
-    font-size: 14px;
-  }
-  .bypass-btn:hover { background: #5a6268; }
-  .divider {
+    border-radius: 50%;
+    width: 26px; height: 26px;
+    line-height: 26px;
     text-align: center;
-    color: #999;
-    margin: 10px 0;
-    font-size: 13px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    margin-right: 8px;
   }
-  #verifyBtn {
-    width: 100%;
-    margin-top: 8px;
+  .step-label {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    color: var(--dark);
+    margin-top: 16px;
+    margin-bottom: 8px;
+    font-size: 0.92rem;
   }
-  #faceSection {
-    border: 1px dashed #A0522D;
+  #idPreview {
+    display: none;
+    max-width: 100%;
     border-radius: 8px;
-    padding: 14px;
-    margin-top: 14px;
-    background: #fffaf7;
+    margin-top: 8px;
+    border: 2px solid #e0e0e0;
   }
-  #faceSection h2 {
-    margin-top: 0;
+  .model-loader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #eaf4fc;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    color: #1a5276;
+    margin-bottom: 10px;
   }
-  .status-box {
-    margin-top: 10px;
+  .spinner {
+    width: 18px; height: 18px;
+    border: 3px solid #aed6f1;
+    border-top-color: #1a5276;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .tick { color: #27ae60; font-size: 1.2rem; }
+
+  #verifyStatus {
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.9rem;
     font-weight: 500;
-    min-height: 22px;
+    margin-top: 10px;
+    min-height: 20px;
+    transition: all 0.3s;
+  }
+
+  .face-match-bar {
+    height: 8px;
+    border-radius: 4px;
+    background: #eee;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+  .face-match-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s ease;
   }
 </style>
 </head>
 <body>
 <header>
   <img src="logo.png" alt="Silver Oak Logo">
-  <h1>Login</h1>
+  <h1>Silver Oak Transport</h1>
 </header>
 
 <div class="form-box">
-  <h2>Login with Email</h2>
-  <input type="email" id="email" placeholder="Enter your Email" required>
-  <input type="password" id="password" placeholder="Enter your Password" required>
+  <h2>🔑 Login</h2>
+
+  <label>Email Address</label>
+  <input type="email" id="email" placeholder="Enter your university email" required>
+
+  <label>Password</label>
+  <input type="password" id="password" placeholder="Enter your password" required>
+
+  <label>User Type</label>
   <select id="userType">
-    <option value="student">Student</option>
-    <option value="teacher">Teacher</option>
+    <option value="student">🎓 Student</option>
+    <option value="teacher">👨‍🏫 Teacher</option>
   </select>
 
-  <!-- BYPASS BUTTON — seedha login -->
-  <div class="divider">— Quick Login —</div>
-  <button class="bypass-btn" onclick="bypassLogin()">⚡ Login Without Face Verification</button>
+  <!-- QUICK LOGIN -->
+  <div class="divider">Quick Login</div>
+  <button class="btn-secondary" onclick="bypassLogin()">⚡ Login Without Face Verification</button>
 
-  <!-- FACE VERIFICATION SECTION (Optional) -->
+  <!-- FACE VERIFICATION -->
+  <div class="divider">OR Secure Login</div>
+
   <div id="faceSection">
-    <h2>🔒 ID Face Verification (Optional)</h2>
-    <p style="font-size:13px;color:#666;">Upload your university ID card, then take a live photo. Your face on the ID must match your live face.</p>
+    <h2>🔒 Face ID Verification</h2>
+    <p style="font-size:0.82rem;color:#888;margin-bottom:12px;">Upload your university ID card and verify your face for secure login.</p>
 
-    <label>Step 1: Upload University ID Card</label>
-    <input type="file" id="idUpload" accept="image/*">
-    <canvas id="idCanvas" style="display:none;max-width:100%;border-radius:8px;margin-top:8px;"></canvas>
-
-    <label style="margin-top:14px;">Step 2: Live Camera Verification</label>
-    <div style="position:relative;display:inline-block;">
-      <video id="video" width="320" height="240" autoplay muted style="border-radius:8px;border:2px solid #A0522D;display:block;"></video>
-      <canvas id="overlay" width="320" height="240" style="position:absolute;top:0;left:0;pointer-events:none;"></canvas>
+    <!-- Model loading status -->
+    <div class="model-loader" id="modelLoader">
+      <div class="spinner" id="loaderSpinner"></div>
+      <span id="modelStatus">Face recognition loading...</span>
     </div>
-    <br>
-    <button onclick="captureAndVerify()" id="verifyBtn" style="margin-top:10px;" disabled>✅ Verify Face & Login</button>
-    <div id="verifyStatus" class="status-box"></div>
+
+    <!-- Step 1 -->
+    <div class="step-label">
+      <span class="step-badge">1</span> Upload University ID Card
+    </div>
+    <input type="file" id="idUpload" accept="image/*">
+    <img id="idPreview" alt="ID Preview">
+    <div id="idStatus" style="font-size:0.85rem;margin-top:6px;color:#666;"></div>
+
+    <!-- Step 2 -->
+    <div class="step-label">
+      <span class="step-badge">2</span> Live Camera Verification
+    </div>
+    <div class="camera-wrap" style="max-width:100%;">
+      <video id="video" width="320" height="240" autoplay muted playsinline></video>
+      <canvas id="overlay" width="320" height="240"></canvas>
+    </div>
+    <div id="cameraStatus" style="font-size:0.82rem;color:#888;margin-top:5px;"></div>
+
+    <!-- Step 3 -->
+    <div class="step-label">
+      <span class="step-badge">3</span> Verify & Login
+    </div>
+    <button onclick="captureAndVerify()" id="verifyBtn" disabled>✅ Verify Face & Login</button>
+
+    <div id="verifyStatus"></div>
+
+    <!-- Match confidence bar -->
+    <div class="face-match-bar" id="matchBarWrap" style="display:none;">
+      <div class="face-match-fill" id="matchBarFill"></div>
+    </div>
+    <div id="matchText" style="font-size:0.8rem;color:#888;text-align:center;margin-top:4px;"></div>
   </div>
 </div>
 
 <script>
 let modelsLoaded = false;
 let idDescriptor = null;
+let cameraReady = false;
 const MODEL_URL = 'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights';
 
-// ✅ BYPASS LOGIN — face verification ke bina seedha login
+// ── helpers ──
+function setStatus(id, msg, type) {
+  const el = document.getElementById(id);
+  el.innerText = msg;
+  el.className = '';
+  if (type === 'success') { el.style.color = '#27ae60'; el.style.background = '#eafaf1'; el.style.border = '1px solid #a9dfbf'; el.style.padding = '10px 14px'; el.style.borderRadius = '8px'; }
+  else if (type === 'error') { el.style.color = '#c0392b'; el.style.background = '#fdf2f2'; el.style.border = '1px solid #f5b7b1'; el.style.padding = '10px 14px'; el.style.borderRadius = '8px'; }
+  else if (type === 'info')  { el.style.color = '#1a5276'; el.style.background = '#eaf4fc'; el.style.border = '1px solid #aed6f1'; el.style.padding = '10px 14px'; el.style.borderRadius = '8px'; }
+  else { el.style = ''; }
+}
+
+// ── bypass login ──
 function bypassLogin() {
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value.trim();
   if (!email || !password) {
-    alert('Pehle Email aur Password dalo!');
+    alert('⚠️ Pehle Email aur Password dalo!');
     return;
   }
+  saveAndRedirect(email, password);
+}
+
+function saveAndRedirect(email, password) {
   const userType = document.getElementById('userType').value;
-  const user = { email, password, userType };
-  localStorage.setItem('currentUser', JSON.stringify(user));
+  localStorage.setItem('currentUser', JSON.stringify({ email, password, userType }));
   window.location.href = 'booking.html';
 }
 
+// ── load face-api models ──
 async function loadModels() {
-  const statusEl = document.getElementById('verifyStatus');
-  statusEl.style.color = '#666';
-  statusEl.innerText = 'Face recognition models load ho rahe hain...';
   try {
     await Promise.all([
       faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
@@ -114,94 +196,199 @@ async function loadModels() {
       faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
     ]);
     modelsLoaded = true;
-    statusEl.innerText = 'Models ready! Apna ID card upload karo.';
+    document.getElementById('loaderSpinner').style.display = 'none';
+    document.getElementById('modelStatus').innerHTML = '<span class="tick">✔</span> Face recognition ready!';
+    document.getElementById('modelLoader').style.background = '#eafaf1';
+    document.getElementById('modelLoader').style.color = '#1e8449';
     startCamera();
   } catch(e) {
-    statusEl.style.color = 'red';
-    statusEl.innerText = 'Models load nahi hue. Upar wala "Quick Login" use karo.';
+    document.getElementById('modelStatus').innerText = '⚠️ Models load nahi hue. Quick Login use karo.';
+    document.getElementById('modelLoader').style.background = '#fdf2f2';
+    document.getElementById('modelLoader').style.color = '#c0392b';
+    document.getElementById('loaderSpinner').style.display = 'none';
   }
 }
 
+// ── start camera ──
 async function startCamera() {
-  const video = document.getElementById('video');
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    const constraints = { video: { facingMode: 'user', width: { ideal: 320 }, height: { ideal: 240 } } };
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    const video = document.getElementById('video');
     video.srcObject = stream;
-  } catch (e) {
-    document.getElementById('verifyStatus').innerText = 'Camera access nahi mila. Permission allow karo ya Quick Login use karo.';
+    video.onloadedmetadata = () => {
+      cameraReady = true;
+      document.getElementById('cameraStatus').innerText = '✔ Camera ready — aapka chehra frame mein rakho';
+      document.getElementById('cameraStatus').style.color = '#27ae60';
+      startFaceDetectionLoop();
+    };
+  } catch(e) {
+    document.getElementById('cameraStatus').innerText = '❌ Camera nahi mila. Browser settings mein camera allow karo.';
+    document.getElementById('cameraStatus').style.color = '#c0392b';
   }
 }
 
-document.getElementById('idUpload').addEventListener('change', async function(e) {
-  if (!modelsLoaded) {
-    document.getElementById('verifyStatus').innerText = 'Models abhi load ho rahe hain, thoda wait karo...';
-    return;
+// ── live face detection on video ──
+async function startFaceDetectionLoop() {
+  const video = document.getElementById('video');
+  const overlay = document.getElementById('overlay');
+  const ctx = overlay.getContext('2d');
+
+  async function loop() {
+    if (!modelsLoaded || !cameraReady) { requestAnimationFrame(loop); return; }
+    overlay.width = video.videoWidth || 320;
+    overlay.height = video.videoHeight || 240;
+    ctx.clearRect(0, 0, overlay.width, overlay.height);
+
+    try {
+      const detection = await faceapi
+        .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.4 }))
+        .withFaceLandmarks();
+
+      if (detection) {
+        const box = detection.detection.box;
+        ctx.strokeStyle = '#27ae60';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(box.x, box.y, box.width, box.height);
+        ctx.fillStyle = 'rgba(39,174,96,0.15)';
+        ctx.fillRect(box.x, box.y, box.width, box.height);
+        document.getElementById('cameraStatus').innerText = '✅ Chehra detect ho gaya!';
+        document.getElementById('cameraStatus').style.color = '#27ae60';
+        if (idDescriptor) {
+          document.getElementById('verifyBtn').disabled = false;
+        }
+      } else {
+        document.getElementById('cameraStatus').innerText = '👁 Camera ke samne seedha dekho...';
+        document.getElementById('cameraStatus').style.color = '#e67e22';
+      }
+    } catch(e) {}
+
+    setTimeout(loop, 300);
   }
+  loop();
+}
+
+// ── ID card upload ──
+document.getElementById('idUpload').addEventListener('change', async function(e) {
   const file = e.target.files[0];
   if (!file) return;
-  const img = await faceapi.bufferToImage(file);
-  const canvas = document.getElementById('idCanvas');
-  canvas.style.display = 'block';
-  const ctx = canvas.getContext('2d');
-  canvas.width = img.width;
-  canvas.height = img.height;
-  ctx.drawImage(img, 0, 0);
-  document.getElementById('verifyStatus').innerText = 'ID card mein face dhundh raha hoon...';
-  const detection = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
-    .withFaceLandmarks()
-    .withFaceDescriptor();
-  if (!detection) {
-    document.getElementById('verifyStatus').style.color = 'red';
-    document.getElementById('verifyStatus').innerText = 'ID card mein face nahi mila. Clear photo wala ID upload karo.';
+
+  // Show preview
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const preview = document.getElementById('idPreview');
+    preview.src = ev.target.result;
+    preview.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+
+  if (!modelsLoaded) {
+    setStatus('idStatus', '⏳ Models abhi load ho rahe hain, please wait...', 'info');
+    // wait for models
+    let waited = 0;
+    const waitInterval = setInterval(async () => {
+      waited += 500;
+      if (modelsLoaded) {
+        clearInterval(waitInterval);
+        await processIDCard(file);
+      } else if (waited > 15000) {
+        clearInterval(waitInterval);
+        setStatus('idStatus', '❌ Models timeout. Quick Login use karo.', 'error');
+      }
+    }, 500);
     return;
   }
-  idDescriptor = detection.descriptor;
-  document.getElementById('verifyStatus').style.color = 'green';
-  document.getElementById('verifyStatus').innerText = 'ID face detect ho gaya! Ab "Verify Face & Login" dabao.';
-  document.getElementById('verifyBtn').disabled = false;
+  await processIDCard(file);
 });
 
-async function captureAndVerify() {
-  if (!modelsLoaded || !idDescriptor) {
-    alert('Pehle ID card upload karo aur models load hone do.');
-    return;
+async function processIDCard(file) {
+  setStatus('idStatus', '🔍 ID card mein chehra dhundh raha hoon...', 'info');
+  try {
+    const img = await faceapi.bufferToImage(file);
+    const detection = await faceapi
+      .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.3 }))
+      .withFaceLandmarks()
+      .withFaceDescriptor();
+
+    if (!detection) {
+      setStatus('idStatus', '❌ ID card mein chehra nahi mila. Clear aur front-facing photo wala ID upload karo.', 'error');
+      idDescriptor = null;
+      return;
+    }
+    idDescriptor = detection.descriptor;
+    setStatus('idStatus', '✅ ID card mein chehra detect ho gaya! Ab camera ke samne dekho.', 'success');
+    if (cameraReady) document.getElementById('verifyBtn').disabled = false;
+  } catch(err) {
+    setStatus('idStatus', '❌ ID process karne mein error hua. Dobara try karo.', 'error');
   }
+}
+
+// ── capture and verify ──
+async function captureAndVerify() {
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value.trim();
   if (!email || !password) {
-    alert('Email aur Password dono bharo');
+    alert('⚠️ Email aur Password dono bharo!');
     return;
   }
-  document.getElementById('verifyStatus').innerText = 'Live face detect ho raha hai...';
-  const video = document.getElementById('video');
-  const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
-    .withFaceLandmarks()
-    .withFaceDescriptor();
-  if (!detection) {
-    document.getElementById('verifyStatus').style.color = 'red';
-    document.getElementById('verifyStatus').innerText = 'Camera mein face nahi mila. Camera ke samne seedha dekho.';
+  if (!idDescriptor) {
+    setStatus('verifyStatus', '⚠️ Pehle ID card upload karo.', 'error');
     return;
   }
-  const distance = faceapi.euclideanDistance(idDescriptor, detection.descriptor);
-  const THRESHOLD = 0.55;
-  if (distance < THRESHOLD) {
-    document.getElementById('verifyStatus').style.color = 'green';
-    document.getElementById('verifyStatus').innerText = 'Face verify ho gaya! Login ho raha hai...';
-    const userType = document.getElementById('userType').value;
-    const user = { email, password, userType };
-    localStorage.setItem('currentUser', JSON.stringify(user));
-    setTimeout(() => { window.location.href = 'booking.html'; }, 1000);
-  } else {
-    document.getElementById('verifyStatus').style.color = 'red';
-    document.getElementById('verifyStatus').innerText = 'Face ID card se match nahi hua. Sahi ID use karo ya Quick Login try karo.';
+
+  setStatus('verifyStatus', '🔍 Live chehra scan ho raha hai...', 'info');
+  document.getElementById('verifyBtn').disabled = true;
+
+  try {
+    const video = document.getElementById('video');
+    const detection = await faceapi
+      .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.4 }))
+      .withFaceLandmarks()
+      .withFaceDescriptor();
+
+    if (!detection) {
+      setStatus('verifyStatus', '❌ Camera mein chehra nahi mila. Camera ke samne seedha dekho aur retry karo.', 'error');
+      document.getElementById('verifyBtn').disabled = false;
+      return;
+    }
+
+    const distance = faceapi.euclideanDistance(idDescriptor, detection.descriptor);
+    const THRESHOLD = 0.55;
+    const confidence = Math.max(0, Math.min(100, Math.round((1 - distance / 1.0) * 100)));
+
+    // Show match bar
+    document.getElementById('matchBarWrap').style.display = 'block';
+    const fill = document.getElementById('matchBarFill');
+    fill.style.width = confidence + '%';
+    fill.style.background = distance < THRESHOLD ? '#27ae60' : '#e74c3c';
+    document.getElementById('matchText').innerText = `Match confidence: ${confidence}%`;
+
+    if (distance < THRESHOLD) {
+      setStatus('verifyStatus', '🎉 Face verify ho gaya! Login ho raha hai...', 'success');
+      setTimeout(() => saveAndRedirect(email, password), 1200);
+    } else {
+      setStatus('verifyStatus', `❌ Chehra ID card se match nahi hua (${confidence}% match). Sahi ID use karo ya Quick Login try karo.`, 'error');
+      document.getElementById('verifyBtn').disabled = false;
+    }
+  } catch(err) {
+    setStatus('verifyStatus', '❌ Verification mein error. Dobara try karo.', 'error');
+    document.getElementById('verifyBtn').disabled = false;
   }
 }
 
+// ── init ──
 window.addEventListener('load', () => {
   if (typeof faceapi !== 'undefined') {
     loadModels();
   } else {
-    setTimeout(loadModels, 1500);
+    document.getElementById('modelStatus').innerText = 'face-api.js load ho raha hai...';
+    setTimeout(() => {
+      if (typeof faceapi !== 'undefined') loadModels();
+      else {
+        document.getElementById('modelStatus').innerText = '⚠️ face-api.js load nahi hua. Quick Login use karo.';
+        document.getElementById('loaderSpinner').style.display = 'none';
+      }
+    }, 2000);
   }
 });
 </script>
