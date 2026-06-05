@@ -1,189 +1,243 @@
-// ---------- Login ----------
-function login() {
-    let email = document.getElementById('email').value.trim();
-    let password = document.getElementById('password').value.trim();
-    let userType = document.getElementById('userType').value;
-    let idFile = document.getElementById('idUpload').files[0];
+// ===== SILVER OAK TRANSPORT - SCRIPT.JS =====
 
-    if (!email || !password) {
-        alert("Enter both email and password");
-        return;
-    }
-    if (!idFile) {
-        alert("Please upload university ID for verification!");
-        return;
-    }
-
-    const user = { email, password, userType };
-    localStorage.setItem('currentUser', JSON.stringify(user));
-    alert("Login successful!");
-    window.location.href = "booking.html";
-}
-
-// ---------- Booking ----------
-let seatsDiv = document.getElementById('seats');
-let fareInfo = document.getElementById('fareInfo');
-let bookingDateInput = document.getElementById('bookingDate');
-let slotSelect = document.getElementById('slotSelect');
-
-let currentBooking = {
-    transport: 'car',
-    seats: [],
-    fare: 0,
-    slot: "Morning",
-    route: "Naroda → Gota → Maninagar → Gandhinagar",
-    from: '',
-    to: ''
+// Fare chart (from → to), reasonable prices in ₹
+const fareChart = {
+  "Naroda":             { "Gota": 20, "Maninagar": 30, "Gandhinagar": 45, "Silver Oak College": 50 },
+  "Gota":               { "Naroda": 20, "Maninagar": 25, "Gandhinagar": 35, "Silver Oak College": 40 },
+  "Maninagar":          { "Naroda": 30, "Gota": 25, "Gandhinagar": 30, "Silver Oak College": 35 },
+  "Gandhinagar":        { "Naroda": 45, "Gota": 35, "Maninagar": 30, "Silver Oak College": 20 },
+  "Silver Oak College": { "Naroda": 50, "Gota": 40, "Maninagar": 35, "Gandhinagar": 20 }
 };
 
-const STOPS = ['Naroda', 'Gota', 'Maninagar', 'Gandhinagar'];
-const FARE_MAP = { 1: 40, 2: 50, 3: 70 };
+// Bus = 40 seats (10 rows x 4), Van = 12 seats (3 rows x 4)
+const vehicleConfig = {
+  Bus: { seats: 40, rows: 10, cols: 4, icon: "🚌" },
+  Van: { seats: 12, rows: 3,  cols: 4, icon: "🚐" }
+};
 
-function updateFare() {
-    const from = document.getElementById('fromStop') ? document.getElementById('fromStop').value : '';
-    const to = document.getElementById('toStop') ? document.getElementById('toStop').value : '';
-    currentBooking.from = from;
-    currentBooking.to = to;
+let selectedSeats = [];
+let currentVehicle = "Bus";
+let bookedSeats = {};  // key: "vehicleType_date_slot" → array of seat numbers
 
-    if (from && to && from !== to) {
-        const fromIdx = STOPS.indexOf(from);
-        const toIdx = STOPS.indexOf(to);
-        const diff = Math.abs(toIdx - fromIdx);
-        const fare = FARE_MAP[diff] || 60;
-        currentBooking.fare = fare;
-        if (fareInfo) fareInfo.innerText = fare;
-    } else {
-        if (fareInfo) fareInfo.innerText = '--';
-        currentBooking.fare = 0;
-    }
-}
-
+// ── On page load ──
 function loadBookingPage() {
-    generateSeats(4);
-    const today = new Date().toISOString().split('T')[0];
-    if (bookingDateInput) bookingDateInput.min = today;
-    if (slotSelect) {
-        slotSelect.addEventListener('change', () => {
-            currentBooking.slot = slotSelect.value;
-        });
-    }
+  const user = JSON.parse(localStorage.getItem('currentUser'));
+  if (!user) { window.location.href = 'login.html'; return; }
+
+  // Set min date to today
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('bookingDate').min = today;
+  document.getElementById('bookingDate').value = today;
+
+  renderSeats();
 }
 
-function generateSeats(count) {
-    if (!seatsDiv) return;
-    seatsDiv.innerHTML = '';
-    currentBooking.seats = [];
-    for (let i = 1; i <= count; i++) {
-        let btn = document.createElement('button');
-        btn.classList.add('seat');
-        btn.innerText = 'S' + i;
-        btn.onclick = () => toggleSeat(btn, i);
-        seatsDiv.appendChild(btn);
-    }
+// ── Vehicle change ──
+function changeVehicle(type) {
+  currentVehicle = type;
+  selectedSeats = [];
+  document.querySelectorAll('.veh-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('vehBtn_' + type).classList.add('active');
+  renderSeats();
+  updateFare();
 }
 
-function toggleSeat(btn, num) {
-    if (btn.classList.contains('booked')) return;
-    if (btn.classList.contains('selected')) {
-        btn.classList.remove('selected');
-        currentBooking.seats = currentBooking.seats.filter(s => s !== num);
+// ── Fare update ──
+function updateFare() {
+  const from = document.getElementById('fromStop').value;
+  const to   = document.getElementById('toStop').value;
+  const fareEl = document.getElementById('fareInfo');
+
+  if (!from || !to || from === to) {
+    fareEl.innerText = '--';
+    return;
+  }
+
+  const baseFare = (fareChart[from] && fareChart[from][to]) ? fareChart[from][to] : 30;
+  const multiplier = currentVehicle === 'Van' ? 1.5 : 1;
+  const totalFare = Math.round(baseFare * multiplier);
+  fareEl.innerText = totalFare + (currentVehicle === 'Van' ? ' (Van rate)' : '');
+}
+
+// ── Render seat map ──
+function renderSeats() {
+  const container = document.getElementById('seats');
+  container.innerHTML = '';
+
+  const cfg = vehicleConfig[currentVehicle];
+  const date  = document.getElementById('bookingDate') ? document.getElementById('bookingDate').value : '';
+  const slot  = document.getElementById('slotSelect')  ? document.getElementById('slotSelect').value  : '';
+  const key   = currentVehicle + '_' + date + '_' + slot;
+  const taken = bookedSeats[key] || [];
+
+  // Legend
+  const legend = document.createElement('div');
+  legend.style.cssText = 'display:flex;gap:16px;justify-content:center;margin-bottom:12px;font-size:0.82rem;flex-wrap:wrap;';
+  legend.innerHTML = `
+    <span><span style="display:inline-block;width:16px;height:16px;background:#e8f5e9;border:2px solid #a5d6a7;border-radius:4px;vertical-align:middle;"></span> Available</span>
+    <span><span style="display:inline-block;width:16px;height:16px;background:linear-gradient(135deg,#8B1A1A,#c0392b);border-radius:4px;vertical-align:middle;"></span> Selected</span>
+    <span><span style="display:inline-block;width:16px;height:16px;background:#fce4e4;border:2px solid #ef9a9a;border-radius:4px;vertical-align:middle;"></span> Booked</span>
+  `;
+  container.appendChild(legend);
+
+  // Driver seat
+  const driverRow = document.createElement('div');
+  driverRow.style.cssText = 'text-align:center;margin-bottom:8px;font-size:0.85rem;color:#888;';
+  driverRow.innerHTML = '🚗 <strong>Driver</strong>';
+  container.appendChild(driverRow);
+
+  // Seat grid
+  const grid = document.createElement('div');
+  grid.style.cssText = 'display:grid;grid-template-columns:repeat(' + cfg.cols + ', 44px);gap:8px;justify-content:center;';
+
+  for (let i = 1; i <= cfg.seats; i++) {
+    const seat = document.createElement('div');
+    seat.className = 'seat';
+    seat.innerText = i;
+    seat.dataset.num = i;
+
+    if (taken.includes(i)) {
+      seat.classList.add('booked');
+      seat.title = 'Already booked';
+    } else if (selectedSeats.includes(i)) {
+      seat.classList.add('selected');
     } else {
-        btn.classList.add('selected');
-        currentBooking.seats.push(num);
+      seat.classList.add('available');
+      seat.onclick = () => toggleSeat(i, seat);
     }
+
+    // Aisle gap after col 2
+    if (i % cfg.cols === 2) {
+      seat.style.marginRight = '14px';
+    }
+
+    grid.appendChild(seat);
+
+    // Row gap
+    if (i % cfg.cols === 0 && i < cfg.seats) {
+      const gap = document.createElement('div');
+      gap.style.cssText = 'grid-column:1/-1;height:4px;';
+      grid.appendChild(gap);
+    }
+  }
+
+  container.appendChild(grid);
+
+  // Selected info
+  const info = document.createElement('div');
+  info.id = 'selectedInfo';
+  info.style.cssText = 'text-align:center;margin-top:14px;font-size:0.9rem;color:#8B1A1A;font-weight:600;';
+  info.innerText = selectedSeats.length > 0 ? '✅ Selected: Seat ' + selectedSeats.join(', ') : 'Koi seat select nahi ki';
+  container.appendChild(info);
 }
 
-function goToPayment() {
-    if (currentBooking.seats.length === 0) {
-        alert("Please select at least one seat!");
-        return;
+// ── Toggle seat ──
+function toggleSeat(num, el) {
+  if (selectedSeats.includes(num)) {
+    selectedSeats = selectedSeats.filter(s => s !== num);
+    el.classList.remove('selected');
+    el.classList.add('available');
+  } else {
+    if (selectedSeats.length >= 4) {
+      alert('⚠️ Maximum 4 seats ek saath select kar sakte ho!');
+      return;
     }
-    if (!currentBooking.from || !currentBooking.to) {
-        alert("Please select From and To stops!");
-        return;
-    }
-    if (currentBooking.from === currentBooking.to) {
-        alert("From and To cannot be the same stop!");
-        return;
-    }
-    const date = bookingDateInput ? bookingDateInput.value : '';
-    if (!date) { alert("Please select a date!"); return; }
-
-    currentBooking.date = date;
-    currentBooking.slot = slotSelect ? slotSelect.value : 'Morning';
-    currentBooking.transport = 'car';
-
-    localStorage.setItem('pendingPayment', JSON.stringify(currentBooking));
-    window.location.href = 'payment.html';
+    selectedSeats.push(num);
+    el.classList.remove('available');
+    el.classList.add('selected');
+  }
+  const info = document.getElementById('selectedInfo');
+  if (info) info.innerText = selectedSeats.length > 0 ? '✅ Selected: Seat ' + selectedSeats.join(', ') : 'Koi seat select nahi ki';
 }
 
+// ── Confirm booking ──
 function confirmBooking() {
-    if (currentBooking.seats.length === 0) {
-        alert("Please select at least one seat!");
-        return;
-    }
-    if (!currentBooking.from || !currentBooking.to) {
-        alert("Please select From and To stops!");
-        return;
-    }
-    if (currentBooking.from === currentBooking.to) {
-        alert("From and To cannot be the same!");
-        return;
-    }
-    const date = bookingDateInput ? bookingDateInput.value : '';
-    if (!date) { alert("Please select a date!"); return; }
+  const date  = document.getElementById('bookingDate').value;
+  const slot  = document.getElementById('slotSelect').value;
+  const from  = document.getElementById('fromStop').value;
+  const to    = document.getElementById('toStop').value;
 
-    currentBooking.date = date;
-    currentBooking.slot = slotSelect ? slotSelect.value : 'Morning';
+  if (!date || !from || !to) { alert('⚠️ Date, From aur To select karo!'); return; }
+  if (from === to)            { alert('⚠️ From aur To alag hone chahiye!'); return; }
+  if (selectedSeats.length === 0) { alert('⚠️ Kam se kam ek seat select karo!'); return; }
 
-    const history = JSON.parse(localStorage.getItem('bookingHistory') || '[]');
-    history.push({ ...currentBooking, paymentStatus: 'Pending' });
-    localStorage.setItem('bookingHistory', JSON.stringify(history));
+  const key = currentVehicle + '_' + date + '_' + slot;
+  if (!bookedSeats[key]) bookedSeats[key] = [];
+  bookedSeats[key].push(...selectedSeats);
 
-    alert(`Booking confirmed!\nSeats: ${currentBooking.seats.join(', ')}\nFare: ₹${currentBooking.fare}\nFrom: ${currentBooking.from} → To: ${currentBooking.to}`);
+  const fareEl = document.getElementById('fareInfo').innerText;
 
-    document.querySelectorAll('.seat.selected').forEach(btn => {
-        btn.classList.remove('selected');
-        btn.classList.add('booked');
-    });
-    currentBooking.seats = [];
+  // Save to history
+  const user = JSON.parse(localStorage.getItem('currentUser')) || {};
+  const history = JSON.parse(localStorage.getItem('bookingHistory') || '[]');
+  history.push({
+    date, slot, from, to,
+    vehicle: currentVehicle,
+    seats: selectedSeats.join(', '),
+    fare: '₹' + fareEl,
+    bookedAt: new Date().toLocaleString()
+  });
+  localStorage.setItem('bookingHistory', JSON.stringify(history));
+
+  alert(`✅ Booking Confirmed!\n\n🗓 Date: ${date}\n⏰ Slot: ${slot}\n${vehicleConfig[currentVehicle].icon} Vehicle: ${currentVehicle}\n📍 ${from} → ${to}\n🪑 Seat(s): ${selectedSeats.join(', ')}\n💰 Fare: ₹${fareEl}`);
+
+  selectedSeats = [];
+  renderSeats();
 }
 
+// ── Go to payment ──
+function goToPayment() {
+  const date  = document.getElementById('bookingDate').value;
+  const slot  = document.getElementById('slotSelect').value;
+  const from  = document.getElementById('fromStop').value;
+  const to    = document.getElementById('toStop').value;
+  const fare  = document.getElementById('fareInfo').innerText;
+
+  if (!date || !from || !to) { alert('⚠️ Pehle Date, From aur To select karo!'); return; }
+  if (from === to)            { alert('⚠️ From aur To alag hone chahiye!'); return; }
+  if (selectedSeats.length === 0) { alert('⚠️ Pehle seat select karo!'); return; }
+
+  localStorage.setItem('pendingBooking', JSON.stringify({
+    date, slot, from, to,
+    vehicle: currentVehicle,
+    seats: selectedSeats.join(', '),
+    fare: '₹' + fare
+  }));
+  window.location.href = 'payment.html';
+}
+
+// ── Open Map ──
 function openMap() {
-    window.open("https://www.google.com/maps/dir/Naroda,+Ahmedabad/Gota,+Ahmedabad/Maninagar,+Ahmedabad/Gandhinagar", "_blank");
+  const from = document.getElementById('fromStop') ? document.getElementById('fromStop').value : '';
+  const to   = document.getElementById('toStop')   ? document.getElementById('toStop').value   : '';
+  const query = from && to ? from + ' to ' + to + ' Ahmedabad' : 'Silver Oak University Ahmedabad';
+  window.open('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(query), '_blank');
 }
 
+// ── SOS ──
 function sos() {
-    alert("SOS Alert sent! Emergency contact notified.\nUniversity Security: 079-66046304");
+  if (confirm('🆘 SOS Alert bhejni hai?\n\nYeh aapki location aur emergency contact ko alert karega.')) {
+    alert('🆘 SOS Alert bhej diya gaya!\nHelp raaste mein hai. Safe raho!');
+  }
 }
 
+// ── Logout ──
 function logout() {
+  if (confirm('Logout karna chahte ho?')) {
     localStorage.removeItem('currentUser');
-    window.location.href = "login.html";
+    window.location.href = 'login.html';
+  }
 }
 
+// ── View History ──
 function viewHistory() {
-    window.location.href = "history.html";
+  window.location.href = 'history.html';
 }
 
-// ---------- History Page ----------
-function loadHistory() {
-    const table = document.getElementById('historyTable');
-    if (!table) return;
-    const history = JSON.parse(localStorage.getItem('bookingHistory') || '[]');
-    history.forEach(b => {
-        let row = table.insertRow();
-        row.insertCell().innerText = b.transport || '--';
-        row.insertCell().innerText = (b.seats || []).join(', ');
-        row.insertCell().innerText = '₹' + (b.fare || '--');
-        row.insertCell().innerText = b.slot || '--';
-        row.insertCell().innerText = b.date || '--';
-        row.insertCell().innerText = b.from || '--';
-        row.insertCell().innerText = b.to || '--';
-        row.insertCell().innerText = b.paymentStatus || 'Pending';
-    });
-}
-
-window.onload = function() {
-    if (document.getElementById('historyTable')) loadHistory();
-};
+// ── Re-render on date/slot change ──
+document.addEventListener('DOMContentLoaded', () => {
+  const dateEl = document.getElementById('bookingDate');
+  const slotEl = document.getElementById('slotSelect');
+  if (dateEl) dateEl.addEventListener('change', () => { selectedSeats = []; renderSeats(); });
+  if (slotEl) slotEl.addEventListener('change', () => { selectedSeats = []; renderSeats(); });
+});
