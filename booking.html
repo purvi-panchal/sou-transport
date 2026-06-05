@@ -6,56 +6,70 @@
 <title>Booking - Silver Oak Transport</title>
 <link rel="stylesheet" href="style.css">
 <style>
-  .vehicle-selector {
-    display: flex;
-    gap: 12px;
-    margin-top: 10px;
-  }
+  .vehicle-selector { display:flex; gap:12px; margin-top:10px; }
   .veh-btn {
-    flex: 1;
-    padding: 14px 10px;
-    border: 2px solid #e0e0e0;
-    border-radius: 12px;
-    background: #fafafa;
-    cursor: pointer;
-    text-align: center;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #555;
-    transition: all 0.2s;
-    margin-top: 0;
-    width: auto;
+    flex:1; padding:14px 10px; border:2px solid #e0e0e0;
+    border-radius:12px; background:#fafafa; cursor:pointer;
+    text-align:center; font-size:0.9rem; font-weight:600;
+    color:#555; transition:all 0.2s; margin-top:0; width:auto;
   }
-  .veh-btn .veh-icon { font-size: 2rem; display: block; margin-bottom: 4px; }
-  .veh-btn.active {
-    border-color: #8B1A1A;
-    background: #fff5f5;
-    color: #8B1A1A;
-    box-shadow: 0 4px 14px rgba(139,26,26,0.18);
+  .veh-btn .veh-icon { font-size:2rem; display:block; margin-bottom:4px; }
+  .veh-btn.active { border-color:#8B1A1A; background:#fff5f5; color:#8B1A1A; box-shadow:0 4px 14px rgba(139,26,26,0.18); }
+  .veh-btn:hover:not(.active) { border-color:#c0392b; background:#fff9f9; transform:translateY(-2px); }
+
+  #seats {
+    display:grid;
+    justify-content:center;
+    gap:8px;
+    padding:16px;
+    max-width:520px;
+    margin:0 auto;
   }
-  .veh-btn:hover:not(.active) {
-    border-color: #c0392b;
-    background: #fff9f9;
-    transform: translateY(-2px);
+  .seat-row { display:flex; gap:8px; justify-content:center; align-items:center; }
+  .aisle { width:20px; }
+
+  .seat {
+    width:44px; height:44px; border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:0.78rem; font-weight:700; cursor:pointer;
+    transition:transform 0.15s, box-shadow 0.15s;
+    border:2px solid transparent; user-select:none;
   }
-  .seat-section-title {
-    text-align: center;
-    margin: 20px auto 4px;
-    max-width: 520px;
-    width: 92%;
-    font-size: 1rem;
-    color: #8B1A1A;
-    font-weight: 700;
+  .seat.available { background:#e8f5e9; color:#27ae60; border-color:#a5d6a7; }
+  .seat.available:hover { transform:scale(1.12); box-shadow:0 3px 10px rgba(0,0,0,0.15); }
+  .seat.selected { background:linear-gradient(135deg,#8B1A1A,#c0392b); color:white; border-color:#8B1A1A; transform:scale(1.1); box-shadow:0 4px 12px rgba(139,26,26,0.4); }
+  .seat.booked { background:#fce4e4; color:#c0392b; border-color:#ef9a9a; cursor:not-allowed; opacity:0.7; }
+
+  .legend { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin-bottom:12px; font-size:0.82rem; }
+  .legend span { display:flex; align-items:center; gap:5px; }
+  .dot { width:14px; height:14px; border-radius:3px; display:inline-block; }
+
+  .selected-info {
+    text-align:center; margin:12px auto; font-size:0.92rem;
+    color:#8B1A1A; font-weight:600; max-width:520px;
+    background:#fff5f5; border-radius:8px; padding:10px;
+    width:92%;
   }
-  .seat-count {
-    text-align: center;
-    font-size: 0.8rem;
-    color: #888;
-    margin-bottom: 10px;
+  .fare-box {
+    background:linear-gradient(135deg,#fff8f0,#fff3e0);
+    border:1.5px solid #f39c12; border-radius:10px;
+    padding:12px 16px; margin-top:14px; text-align:center;
+    font-size:1.1rem; font-weight:700; color:#e67e22;
+  }
+  .route-info {
+    background:linear-gradient(135deg,#f8f9ff,#eef0fb);
+    border-left:4px solid #8B1A1A; border-radius:8px;
+    padding:10px 14px; margin-top:12px; font-size:0.9rem;
+  }
+  .driver-row {
+    text-align:center; font-size:0.85rem; color:#888;
+    margin-bottom:6px; padding:6px;
+    background:#f5f5f5; border-radius:8px;
+    max-width:220px; margin-left:auto; margin-right:auto;
   }
 </style>
 </head>
-<body onload="loadBookingPage()">
+<body>
 <header>
   <img src="logo.png" alt="Silver Oak Logo">
   <h1>Book Your Seat</h1>
@@ -68,7 +82,7 @@
   <input type="date" id="bookingDate" required>
 
   <label>Select Time Slot</label>
-  <select id="slotSelect">
+  <select id="slotSelect" onchange="renderSeats()">
     <option value="Morning">🌅 Morning (8:00 AM - 10:00 AM)</option>
     <option value="Afternoon">☀️ Afternoon (12:00 PM - 2:00 PM)</option>
     <option value="Evening">🌆 Evening (4:00 PM - 6:00 PM)</option>
@@ -77,12 +91,12 @@
   <label>Select Vehicle</label>
   <div class="vehicle-selector">
     <button class="veh-btn active" id="vehBtn_Bus" onclick="changeVehicle('Bus')">
-      <span class="veh-icon">🚌</span>
-      Bus<br><small style="font-weight:400;color:#888;">40 Seats</small>
+      <span class="veh-icon">🚌</span>Bus<br>
+      <small style="font-weight:400;color:#888;">40 Seats</small>
     </button>
     <button class="veh-btn" id="vehBtn_Van" onclick="changeVehicle('Van')">
-      <span class="veh-icon">🚐</span>
-      Van<br><small style="font-weight:400;color:#888;">12 Seats</small>
+      <span class="veh-icon">🚐</span>Van<br>
+      <small style="font-weight:400;color:#888;">12 Seats</small>
     </button>
   </div>
 
@@ -109,15 +123,24 @@
   <div class="route-info">
     🚌 <strong>Route:</strong> Naroda → Gota → Maninagar → Gandhinagar → Silver Oak College
   </div>
-
   <div class="fare-box">
     💰 Total Fare: ₹<span id="fareInfo">--</span>
   </div>
 </div>
 
-<div class="seat-section-title">🪑 Select Your Seat</div>
-<div class="seat-count" id="seatCountLabel">Bus — 40 seats available</div>
+<!-- SEAT MAP -->
+<h2 style="text-align:center;margin:20px auto 4px;max-width:520px;width:92%;font-size:1rem;color:#8B1A1A;">🪑 Select Your Seat</h2>
+<p style="text-align:center;font-size:0.8rem;color:#888;margin-bottom:10px;" id="seatCountLabel">Bus — 40 seats</p>
+
+<div class="legend">
+  <span><span class="dot" style="background:#e8f5e9;border:2px solid #a5d6a7;"></span> Available</span>
+  <span><span class="dot" style="background:#8B1A1A;"></span> Selected</span>
+  <span><span class="dot" style="background:#fce4e4;border:2px solid #ef9a9a;"></span> Booked</span>
+</div>
+
+<div class="driver-row">🧑‍✈️ Driver</div>
 <div id="seats"></div>
+<div class="selected-info" id="selectedInfo">Koi seat select nahi ki</div>
 
 <div class="buttons">
   <button class="btn-success" onclick="goToPayment()">💳 Pay Now</button>
@@ -128,15 +151,217 @@
   <button class="btn-secondary" onclick="logout()">🚪 Logout</button>
 </div>
 
-<script src="script.js"></script>
 <script>
-  // Update seat count label when vehicle changes
-  const origChangeVehicle = changeVehicle;
-  function changeVehicle(type) {
-    origChangeVehicle(type);
-    const cfg = vehicleConfig[type];
-    document.getElementById('seatCountLabel').innerText = type + ' — ' + cfg.seats + ' seats available';
+// ── CONFIG ──
+const fareChart = {
+  "Naroda":             { "Gota":20, "Maninagar":30, "Gandhinagar":45, "Silver Oak College":50 },
+  "Gota":               { "Naroda":20, "Maninagar":25, "Gandhinagar":35, "Silver Oak College":40 },
+  "Maninagar":          { "Naroda":30, "Gota":25, "Gandhinagar":30, "Silver Oak College":35 },
+  "Gandhinagar":        { "Naroda":45, "Gota":35, "Maninagar":30, "Silver Oak College":20 },
+  "Silver Oak College": { "Naroda":50, "Gota":40, "Maninagar":35, "Gandhinagar":20 }
+};
+
+const vehicleConfig = {
+  Bus: { seats:40, cols:4 },
+  Van: { seats:12, cols:4 }
+};
+
+let selectedSeats = [];
+let currentVehicle = "Bus";
+let bookedSeats = {};   // key → array of seat numbers
+
+// ── INIT ──
+window.onload = function() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('bookingDate').min = today;
+  document.getElementById('bookingDate').value = today;
+  document.getElementById('bookingDate').onchange = function(){ selectedSeats=[]; renderSeats(); };
+  renderSeats();
+};
+
+// ── VEHICLE ──
+function changeVehicle(type) {
+  currentVehicle = type;
+  selectedSeats = [];
+  document.querySelectorAll('.veh-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('vehBtn_' + type).classList.add('active');
+  const cfg = vehicleConfig[type];
+  document.getElementById('seatCountLabel').innerText = type + ' — ' + cfg.seats + ' seats';
+  updateFare();
+  renderSeats();
+}
+
+// ── FARE ──
+function updateFare() {
+  const from = document.getElementById('fromStop').value;
+  const to   = document.getElementById('toStop').value;
+  if (!from || !to || from === to) { document.getElementById('fareInfo').innerText = '--'; return; }
+  const base = (fareChart[from] && fareChart[from][to]) ? fareChart[from][to] : 30;
+  const fare = currentVehicle === 'Van' ? Math.round(base * 1.5) : base;
+  document.getElementById('fareInfo').innerText = fare + (currentVehicle === 'Van' ? ' (Van)' : '');
+}
+
+// ── RENDER SEATS ──
+function renderSeats() {
+  const container = document.getElementById('seats');
+  container.innerHTML = '';
+
+  const cfg  = vehicleConfig[currentVehicle];
+  const date = document.getElementById('bookingDate').value;
+  const slot = document.getElementById('slotSelect').value;
+  const key  = currentVehicle + '_' + date + '_' + slot;
+  const taken = bookedSeats[key] || [];
+
+  const totalRows = cfg.seats / cfg.cols;
+
+  for (let r = 0; r < totalRows; r++) {
+    const row = document.createElement('div');
+    row.className = 'seat-row';
+
+    for (let c = 0; c < cfg.cols; c++) {
+      // Aisle gap between col 1 and col 2 (index 1 and 2)
+      if (c === 2) {
+        const aisle = document.createElement('div');
+        aisle.className = 'aisle';
+        row.appendChild(aisle);
+      }
+
+      const seatNum = r * cfg.cols + c + 1;
+      const seat = document.createElement('div');
+      seat.className = 'seat';
+      seat.innerText = seatNum;
+
+      if (taken.includes(seatNum)) {
+        seat.classList.add('booked');
+      } else if (selectedSeats.includes(seatNum)) {
+        seat.classList.add('selected');
+      } else {
+        seat.classList.add('available');
+        seat.onclick = (function(n, el) {
+          return function() { toggleSeat(n, el); };
+        })(seatNum, seat);
+      }
+      row.appendChild(seat);
+    }
+    container.appendChild(row);
   }
+  updateSelectedInfo();
+}
+
+// ── TOGGLE SEAT ──
+function toggleSeat(num, el) {
+  if (selectedSeats.includes(num)) {
+    selectedSeats = selectedSeats.filter(s => s !== num);
+    el.classList.remove('selected');
+    el.classList.add('available');
+    el.onclick = (function(n, e){ return function(){ toggleSeat(n, e); }; })(num, el);
+  } else {
+    if (selectedSeats.length >= 4) {
+      alert('⚠️ Maximum 4 seats select kar sakte ho!');
+      return;
+    }
+    selectedSeats.push(num);
+    el.classList.remove('available');
+    el.classList.add('selected');
+  }
+  updateSelectedInfo();
+}
+
+function updateSelectedInfo() {
+  const el = document.getElementById('selectedInfo');
+  el.innerText = selectedSeats.length > 0
+    ? '✅ Selected Seat(s): ' + selectedSeats.join(', ')
+    : 'Koi seat select nahi ki';
+}
+
+// ── CONFIRM BOOKING ──
+function confirmBooking() {
+  const date = document.getElementById('bookingDate').value;
+  const slot = document.getElementById('slotSelect').value;
+  const from = document.getElementById('fromStop').value;
+  const to   = document.getElementById('toStop').value;
+  const fare = document.getElementById('fareInfo').innerText;
+
+  if (!date)  { alert('⚠️ Date select karo!'); return; }
+  if (!from)  { alert('⚠️ Pickup stop select karo!'); return; }
+  if (!to)    { alert('⚠️ Destination select karo!'); return; }
+  if (from === to) { alert('⚠️ From aur To alag hone chahiye!'); return; }
+  if (selectedSeats.length === 0) { alert('⚠️ Pehle seat select karo!'); return; }
+
+  // Mark seats as booked
+  const key = currentVehicle + '_' + date + '_' + slot;
+  if (!bookedSeats[key]) bookedSeats[key] = [];
+  selectedSeats.forEach(s => bookedSeats[key].push(s));
+
+  // Save history
+  const history = JSON.parse(localStorage.getItem('bookingHistory') || '[]');
+  history.unshift({
+    date, slot, from, to,
+    vehicle: currentVehicle,
+    seats: selectedSeats.join(', '),
+    fare: '₹' + fare,
+    bookedAt: new Date().toLocaleString()
+  });
+  localStorage.setItem('bookingHistory', JSON.stringify(history));
+
+  alert('✅ Booking Confirmed!\n\n📅 Date: ' + date +
+        '\n⏰ Slot: ' + slot +
+        '\n🚌 Vehicle: ' + currentVehicle +
+        '\n📍 ' + from + ' → ' + to +
+        '\n🪑 Seat(s): ' + selectedSeats.join(', ') +
+        '\n💰 Fare: ₹' + fare);
+
+  selectedSeats = [];
+  renderSeats();
+}
+
+// ── PAY NOW ──
+function goToPayment() {
+  const date = document.getElementById('bookingDate').value;
+  const slot = document.getElementById('slotSelect').value;
+  const from = document.getElementById('fromStop').value;
+  const to   = document.getElementById('toStop').value;
+  const fare = document.getElementById('fareInfo').innerText;
+
+  if (!date || !from || !to) { alert('⚠️ Date, From aur To select karo!'); return; }
+  if (from === to)            { alert('⚠️ From aur To alag hone chahiye!'); return; }
+  if (selectedSeats.length === 0) { alert('⚠️ Pehle seat select karo!'); return; }
+
+  localStorage.setItem('pendingBooking', JSON.stringify({
+    date, slot, from, to,
+    vehicle: currentVehicle,
+    seats: selectedSeats.join(', '),
+    fare: '₹' + fare
+  }));
+  window.location.href = 'payment.html';
+}
+
+// ── MAP ──
+function openMap() {
+  const from = document.getElementById('fromStop').value || 'Silver Oak University';
+  const to   = document.getElementById('toStop').value   || 'Silver Oak University';
+  window.open('https://www.google.com/maps/dir/' + encodeURIComponent(from + ' Ahmedabad') + '/' + encodeURIComponent(to + ' Ahmedabad'), '_blank');
+}
+
+// ── SOS ──
+function sos() {
+  if (confirm('🆘 SOS Alert bhejni hai?')) {
+    alert('🆘 SOS Alert bhej diya! Help raaste mein hai. Safe raho!');
+  }
+}
+
+// ── LOGOUT ──
+function logout() {
+  if (confirm('Logout karna chahte ho?')) {
+    localStorage.removeItem('currentUser');
+    window.location.href = 'login.html';
+  }
+}
+
+// ── HISTORY ──
+function viewHistory() {
+  window.location.href = 'history.html';
+}
 </script>
 </body>
 </html>
