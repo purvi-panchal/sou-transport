@@ -5,6 +5,55 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Booking - Silver Oak Transport</title>
 <link rel="stylesheet" href="style.css">
+<style>
+  .vehicle-selector {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+  }
+  .veh-btn {
+    flex: 1;
+    padding: 14px 10px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    background: #fafafa;
+    cursor: pointer;
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #555;
+    transition: all 0.2s;
+    margin-top: 0;
+    width: auto;
+  }
+  .veh-btn .veh-icon { font-size: 2rem; display: block; margin-bottom: 4px; }
+  .veh-btn.active {
+    border-color: #8B1A1A;
+    background: #fff5f5;
+    color: #8B1A1A;
+    box-shadow: 0 4px 14px rgba(139,26,26,0.18);
+  }
+  .veh-btn:hover:not(.active) {
+    border-color: #c0392b;
+    background: #fff9f9;
+    transform: translateY(-2px);
+  }
+  .seat-section-title {
+    text-align: center;
+    margin: 20px auto 4px;
+    max-width: 520px;
+    width: 92%;
+    font-size: 1rem;
+    color: #8B1A1A;
+    font-weight: 700;
+  }
+  .seat-count {
+    text-align: center;
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 10px;
+  }
+</style>
 </head>
 <body onload="loadBookingPage()">
 <header>
@@ -24,6 +73,18 @@
     <option value="Afternoon">☀️ Afternoon (12:00 PM - 2:00 PM)</option>
     <option value="Evening">🌆 Evening (4:00 PM - 6:00 PM)</option>
   </select>
+
+  <label>Select Vehicle</label>
+  <div class="vehicle-selector">
+    <button class="veh-btn active" id="vehBtn_Bus" onclick="changeVehicle('Bus')">
+      <span class="veh-icon">🚌</span>
+      Bus<br><small style="font-weight:400;color:#888;">40 Seats</small>
+    </button>
+    <button class="veh-btn" id="vehBtn_Van" onclick="changeVehicle('Van')">
+      <span class="veh-icon">🚐</span>
+      Van<br><small style="font-weight:400;color:#888;">12 Seats</small>
+    </button>
+  </div>
 
   <label>From (Pickup Stop)</label>
   <select id="fromStop" onchange="updateFare()">
@@ -54,7 +115,8 @@
   </div>
 </div>
 
-<h2 style="text-align:center;margin:20px auto;max-width:520px;width:92%;">🪑 Select Your Seat</h2>
+<div class="seat-section-title">🪑 Select Your Seat</div>
+<div class="seat-count" id="seatCountLabel">Bus — 40 seats available</div>
 <div id="seats"></div>
 
 <div class="buttons">
@@ -67,5 +129,14 @@
 </div>
 
 <script src="script.js"></script>
+<script>
+  // Update seat count label when vehicle changes
+  const origChangeVehicle = changeVehicle;
+  function changeVehicle(type) {
+    origChangeVehicle(type);
+    const cfg = vehicleConfig[type];
+    document.getElementById('seatCountLabel').innerText = type + ' — ' + cfg.seats + ' seats available';
+  }
+</script>
 </body>
 </html>
