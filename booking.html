@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Booking - Silver Oak Transport</title>
 <link rel="stylesheet" href="style.css">
 </head>
@@ -12,50 +13,57 @@
 </header>
 
 <div class="info-box">
-  <label for="bookingDate">Select Date:</label>
+  <h2>🗓 Trip Details</h2>
+
+  <label>Select Date</label>
   <input type="date" id="bookingDate" required>
 
-  <label for="slotSelect">Select Slot:</label>
+  <label>Select Time Slot</label>
   <select id="slotSelect">
-    <option value="Morning">Morning (8:00 AM - 10:00 AM)</option>
-    <option value="Afternoon">Afternoon (12:00 PM - 2:00 PM)</option>
-    <option value="Evening">Evening (4:00 PM - 6:00 PM)</option>
+    <option value="Morning">🌅 Morning (8:00 AM - 10:00 AM)</option>
+    <option value="Afternoon">☀️ Afternoon (12:00 PM - 2:00 PM)</option>
+    <option value="Evening">🌆 Evening (4:00 PM - 6:00 PM)</option>
   </select>
 
-  <label for="fromStop">From (Pickup Stop):</label>
+  <label>From (Pickup Stop)</label>
   <select id="fromStop" onchange="updateFare()">
-    <option value="">Select Pickup</option>
-    <option value="Naroda">Naroda</option>
-    <option value="Gota">Gota</option>
-    <option value="Maninagar">Maninagar</option>
-    <option value="Gandhinagar">Gandhinagar</option>
-    <option value="Silver Oak College">Silver Oak College</option>
+    <option value="">— Select Pickup —</option>
+    <option value="Naroda">📍 Naroda</option>
+    <option value="Gota">📍 Gota</option>
+    <option value="Maninagar">📍 Maninagar</option>
+    <option value="Gandhinagar">📍 Gandhinagar</option>
+    <option value="Silver Oak College">🏫 Silver Oak College</option>
   </select>
 
-  <label for="toStop">To (Destination):</label>
+  <label>To (Destination)</label>
   <select id="toStop" onchange="updateFare()">
-    <option value="">Select Destination</option>
-    <option value="Naroda">Naroda</option>
-    <option value="Gota">Gota</option>
-    <option value="Maninagar">Maninagar</option>
-    <option value="Gandhinagar">Gandhinagar</option>
-    <option value="Silver Oak College">Silver Oak College</option>
+    <option value="">— Select Destination —</option>
+    <option value="Naroda">📍 Naroda</option>
+    <option value="Gota">📍 Gota</option>
+    <option value="Maninagar">📍 Maninagar</option>
+    <option value="Gandhinagar">📍 Gandhinagar</option>
+    <option value="Silver Oak College">🏫 Silver Oak College</option>
   </select>
 
-  <p><strong>Route:</strong> Naroda → Gota → Maninagar → Gandhinagar → Silver Oak College</p>
-  <p>Total Fare: ₹<span id="fareInfo">--</span></p>
+  <div class="route-info">
+    🚌 <strong>Route:</strong> Naroda → Gota → Maninagar → Gandhinagar → Silver Oak College
+  </div>
+
+  <div class="fare-box">
+    💰 Total Fare: ₹<span id="fareInfo">--</span>
+  </div>
 </div>
 
-<h2 style="text-align:center;margin-top:20px;">Select Your Seats:</h2>
+<h2 style="text-align:center;margin:20px auto;max-width:520px;width:92%;">🪑 Select Your Seat</h2>
 <div id="seats"></div>
 
 <div class="buttons">
-  <button onclick="goToPayment()">Pay Now</button>
-  <button onclick="confirmBooking()">Confirm Booking</button>
-  <button onclick="openMap()">Map</button>
-  <button onclick="sos()">SOS</button>
-  <button onclick="logout()">Logout</button>
-  <button onclick="viewHistory()">History</button>
+  <button class="btn-success" onclick="goToPayment()">💳 Pay Now</button>
+  <button onclick="confirmBooking()">✅ Confirm</button>
+  <button class="btn-warning" onclick="openMap()">🗺 Map</button>
+  <button class="btn-danger" onclick="sos()">🆘 SOS</button>
+  <button onclick="viewHistory()">📋 History</button>
+  <button class="btn-secondary" onclick="logout()">🚪 Logout</button>
 </div>
 
 <script src="script.js"></script>
