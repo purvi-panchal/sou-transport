@@ -1,61 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Booking - Silver Oak Transport</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>Booking - Silver Oak Transport</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body onload="loadBookingPage()">
-    <header>
-        <img src="logo.png" alt="Silver Oak Logo">
-        <h1>Book Your Seat</h1>
-    </header>
+<header>
+  <img src="logo.png" alt="Silver Oak Logo">
+  <h1>Book Your Seat</h1>
+</header>
 
-    <div class="info-box">
-        <label for="bookingDate">Select Date:</label>
-        <input type="date" id="bookingDate" required>
+<div class="info-box">
+  <label for="bookingDate">Select Date:</label>
+  <input type="date" id="bookingDate" required>
 
-        <label for="slotSelect">Select Slot:</label>
-        <select id="slotSelect">
-            <option value="Morning">Morning (8:00 AM - 10:00 AM)</option>
-            <option value="Afternoon">Afternoon (12:00 PM - 2:00 PM)</option>
-            <option value="Evening">Evening (4:00 PM - 6:00 PM)</option>
-        </select>
+  <label for="slotSelect">Select Slot:</label>
+  <select id="slotSelect">
+    <option value="Morning">Morning (8:00 AM - 10:00 AM)</option>
+    <option value="Afternoon">Afternoon (12:00 PM - 2:00 PM)</option>
+    <option value="Evening">Evening (4:00 PM - 6:00 PM)</option>
+  </select>
 
-        <label for="fromStop">From (Pickup Stop):</label>
-        <select id="fromStop" onchange="updateFare()">
-            <option value="">Select Pickup</option>
-            <option value="Naroda">Naroda</option>
-            <option value="Gota">Gota</option>
-            <option value="Maninagar">Maninagar</option>
-            <option value="Gandhinagar">Gandhinagar</option>
-        </select>
+  <label for="fromStop">From (Pickup Stop):</label>
+  <select id="fromStop" onchange="updateFare()">
+    <option value="">Select Pickup</option>
+    <option value="Naroda">Naroda</option>
+    <option value="Gota">Gota</option>
+    <option value="Maninagar">Maninagar</option>
+    <option value="Gandhinagar">Gandhinagar</option>
+    <option value="Silver Oak College">Silver Oak College</option>
+  </select>
 
-        <label for="toStop">To (Destination):</label>
-        <select id="toStop" onchange="updateFare()">
-            <option value="">Select Destination</option>
-            <option value="Naroda">Naroda</option>
-            <option value="Gota">Gota</option>
-            <option value="Maninagar">Maninagar</option>
-            <option value="Gandhinagar">Gandhinagar</option>
-        </select>
+  <label for="toStop">To (Destination):</label>
+  <select id="toStop" onchange="updateFare()">
+    <option value="">Select Destination</option>
+    <option value="Naroda">Naroda</option>
+    <option value="Gota">Gota</option>
+    <option value="Maninagar">Maninagar</option>
+    <option value="Gandhinagar">Gandhinagar</option>
+    <option value="Silver Oak College">Silver Oak College</option>
+  </select>
 
-        <p><strong>Route:</strong> Naroda → Gota → Maninagar → Gandhinagar</p>
-        <p>Total Fare: ₹<span id="fareInfo">--</span></p>
-    </div>
+  <p><strong>Route:</strong> Naroda → Gota → Maninagar → Gandhinagar → Silver Oak College</p>
+  <p>Total Fare: ₹<span id="fareInfo">--</span></p>
+</div>
 
-    <h2 style="text-align:center;margin-top:20px;">Select Your Seats:</h2>
-    <div id="seats"></div>
+<h2 style="text-align:center;margin-top:20px;">Select Your Seats:</h2>
+<div id="seats"></div>
 
-    <div class="buttons">
-        <button onclick="goToPayment()">Pay Now</button>
-        <button onclick="confirmBooking()">Confirm Booking</button>
-        <button onclick="openMap()">Map</button>
-        <button onclick="sos()">SOS</button>
-        <button onclick="logout()">Logout</button>
-        <button onclick="viewHistory()">History</button>
-    </div>
+<div class="buttons">
+  <button onclick="goToPayment()">Pay Now</button>
+  <button onclick="confirmBooking()">Confirm Booking</button>
+  <button onclick="openMap()">Map</button>
+  <button onclick="sos()">SOS</button>
+  <button onclick="logout()">Logout</button>
+  <button onclick="viewHistory()">History</button>
+</div>
 
-    <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
